@@ -21,11 +21,11 @@ mongoose
 
 // API Routes
 // Mount the blog routes under '/blogs'
-// This means requests to https://ass-11.onrender.com//blogs (GET for all, POST for add, GET /my-blogs etc.) will be handled by blogRoutes.js
+// This means requests to https://assingment-11-ashy.vercel.app//blogs (GET for all, POST for add, GET /my-blogs etc.) will be handled by blogRoutes.js
 app.use('/blogs', blogRoutes);
 
 // Mount the wishlist routes under '/api/wishlist'
-// This means requests to https://ass-11.onrender.com//api/wishlist will be handled by wishlistRoutes.js
+// This means requests to https://assingment-11-ashy.vercel.app//api/wishlist will be handled by wishlistRoutes.js
 app.use('/api/wishlist', wishlistRoutes);
 
 // Simple test route to ensure the server is running
