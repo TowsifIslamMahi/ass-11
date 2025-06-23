@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Blog = require('../models/Blog');
 
-// ✅ Create new blog
+// ✅ Add a new blog
 router.post('/', async (req, res) => {
   try {
     const newBlog = new Blog(req.body);
@@ -13,7 +13,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// ✅ Get all blogs (with optional search and category filter)
+// ✅ Get all blogs (with optional search and category)
 router.get('/', async (req, res) => {
   const { search, category } = req.query;
   const query = {};
@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ✅ Get all blogs by user (My Blogs)
+// ✅ Get blogs by logged-in user's email (My Blogs)
 router.get('/my-blogs', async (req, res) => {
   const { email } = req.query;
 
@@ -38,14 +38,15 @@ router.get('/my-blogs', async (req, res) => {
   }
 
   try {
-    const blogs = await Blog.find({ ownerEmail: email }); // Use correct key
+    const blogs = await Blog.find({ email });
     res.json(blogs);
   } catch (err) {
+    console.error('Error fetching user blogs:', err);
     res.status(500).json({ message: 'Failed to fetch user blogs' });
   }
 });
 
-// ✅ Get single blog by ID
+// ✅ Get a single blog by ID
 router.get('/:id', async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
@@ -56,7 +57,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// ✅ Get top 10 featured blogs by word count
+// ✅ Get top 10 featured blogs based on word count
 router.get('/featured/top', async (req, res) => {
   try {
     const blogs = await Blog.find();
@@ -73,6 +74,33 @@ router.get('/featured/top', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+// In backend/routes/blogRoutes.js, inside the GET /my-blogs route:
+router.get('/my-blogs', async (req, res) => {
+  console.log('Backend: /blogs/my-blogs route hit'); // Add this
+  console.log('Backend: req.query received:', req.query); // Add this
+  const { ownerEmail } = req.query;
+
+  if (!ownerEmail) {
+    console.error(
+      'Backend: ownerEmail is missing or empty. Value received:',
+      ownerEmail
+    ); // Add this
+    return res
+      .status(400)
+      .json({ message: 'Owner email query parameter is required.' });
+  }
+  // ... rest of your code
+});
+// Get all blogs by a specific user (My Blogs)
+router.get('/my-blogs', async (req, res) => {
+  const { email } = req.query;
+  try {
+    const blogs = await Blog.find({ authorEmail: email });
+    res.json(blogs);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch user blogs' });
+  }
+});
 
 // ✅ Update blog by ID
 router.put('/:id', async (req, res) => {
@@ -81,9 +109,9 @@ router.put('/:id', async (req, res) => {
 
   try {
     const blog = await Blog.findById(req.params.id);
-    if (!blog) return res.status(404).json({ message: 'Blog not found' });
 
-    if (blog.ownerEmail !== email) {
+    if (!blog) return res.status(404).json({ message: 'Blog not found' });
+    if (blog.email !== email) {
       return res
         .status(403)
         .json({ message: 'Unauthorized to edit this blog' });
@@ -110,7 +138,7 @@ router.delete('/:id', async (req, res) => {
     const blog = await Blog.findById(req.params.id);
     if (!blog) return res.status(404).json({ message: 'Blog not found' });
 
-    if (blog.ownerEmail !== email) {
+    if (blog.email !== email) {
       return res
         .status(403)
         .json({ message: 'Unauthorized to delete this blog' });
